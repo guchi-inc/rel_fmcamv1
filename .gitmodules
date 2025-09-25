@@ -1,0 +1,6 @@
+[submodule "ctrlib"]
+	path = ctrlib
+	url = git@github.com:gcjininfo/ctrlib.git
+[submodule "common"]
+	path = common
+	url = git@github.com:guchi-inc/sub_fmservices.git
