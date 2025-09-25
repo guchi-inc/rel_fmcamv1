@@ -1,0 +1,42 @@
+# github.com/guchi-inc/server Global Configuration
+ 
+# mysql connect configuration
+# 未初始化之前请勿手动修改数据库信息！！！   '116.204.124.54'
+mysql:
+  net: 'tcp'
+  path: '118.178.93.207'
+  port: '3866'
+  config: 'allowNativePasswords=true&checkConnLiveness=false&maxAllowedPacket=0&parseTime=true&multiStatements=true'
+  db-name: 'fm_man'
+  username: 'gsface'
+  password: 'pm_654321'
+  max-idle-conns: 10
+  max-open-conns: 10
+  log-mode: ''
+  log-zap: false
+
+  
+# redis configuration
+redis:
+  db: 2
+  addr: '118.178.93.207:9910'
+  password: ''
+  pool_size: 1000
+  is_local: false
+  path_local: 'D:\redis\redis-server.exe'
+  config_local: 'D:\redis\redis.windows-service.conf'
+
+# iot configuration
+mqtts:
+  db: 0
+  addr: '116.204.124.54:18830'
+  password: ''
+  pool_size: 1000
+  is_local: false
+  path_local: 'D:\mosquitto\mosquitto.exe'
+  config_local: 'D:\mosquitto\mosquitto.conf'
+
+# 打印相关
+printer:
+  default: '1686045897759'
+  backup: '1686989129754'
