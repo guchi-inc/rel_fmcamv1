@@ -1,6 +1,8 @@
 # 1 或者基本代码 fmbase
   拉取该仓库代码后需要同步其他插件
 	
+	git clone git@github.com:guchi-inc/rel_fmcamv1.git
+	
 	初始化
 	
 	git submodule update --init --recursive
