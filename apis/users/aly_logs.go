@@ -56,7 +56,7 @@ func (that *UsersApi) GetUserSQLLogs(c *gin.Context) {
 		conds = append(conds, sqllog.CreatedTimeLTE(EndAtDate))
 	}
 
-	responses, err := UserService.SqlLogList(Page, PageSize, c, conds)
+	responses, err := UserService.SqlLogList(Page, PageSize, c, conds, "user")
 	if err != nil {
 		helpers.JSONs(c, code.NullData, gin.H{"error": err})
 		return
@@ -110,7 +110,7 @@ func (that *UsersApi) GetDeviceSQLLogs(c *gin.Context) {
 		conds = append(conds, sqllog.CreatedTimeLT(EndAtDate))
 	}
 
-	responses, err := UserService.SqlLogList(Page, PageSize, c, conds)
+	responses, err := UserService.SqlLogList(Page, PageSize, c, conds, "device")
 	if err != nil {
 		helpers.JSONs(c, code.NullData, gin.H{"error": err})
 		return

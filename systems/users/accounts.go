@@ -236,7 +236,7 @@ func (u *UserRepository) UserAccountList(Page, PageSize int, TenantId, Phonenum 
 }
 
 // 用户的全部信息 包括租户信息
-func (u *UserRepository) GetUserAccountInfo(login_name string) (*genclients.FmUserAccount, *seclients.TenantFull, error) {
+func (u *UserRepository) GetUserAccountInfo(login_name string) (*genclients.FmUserAccount, *seclients.TenantFull, *genclients.FmDedicatedServices, error) {
 	// 查询单个数据 You can also get a single result, a la QueryRow
 	var (
 		usep = genclients.FmUserAccount{}
@@ -246,7 +246,7 @@ func (u *UserRepository) GetUserAccountInfo(login_name string) (*genclients.FmUs
 	)
 
 	if login_name == "" {
-		return nil, nil, fmt.Errorf("login_name or id nil")
+		return nil, nil, nil, fmt.Errorf("login_name or id nil")
 	}
 	// fileds := strings.Join(models.TP_fm_user, ",")
 	Fileter := fmt.Sprintf(" WHERE login_name = '%v' ", login_name)
@@ -255,17 +255,30 @@ func (u *UserRepository) GetUserAccountInfo(login_name string) (*genclients.FmUs
 
 	logger.Printf("from db get:%v user:%#v err:%v \n", login_name, baseSql, err)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	//租户信息
 	customerInfo := sysutils.CustomerUtil{}
 	if usep.TenantID.String() == configs.DefTenantId {
-		return &usep, nil, nil
+		return &usep, nil, nil, nil
 	}
+
 	tenantInfo, err := customerInfo.GetCustomerInfo(0, "", "", usep.TenantID.String())
 	if err != nil {
-		return nil, nil, err
+		return &usep, nil, nil, err
 	}
-	return &usep, tenantInfo, nil
+
+	//专属客服信息
+	var OwnTenatInfo = genclients.FmDedicatedServices{}
+	baseDediSql := fmt.Sprintf(`SELECT a.id, a.contacts , a.work_id , 
+		a.supplier, a.email, a.fax, a.phonenum, a.description, a.creator, a.created_time FROM fm_dedicated_services a
+		LEFT JOIN fm_tenant b ON b.id = a.work_id AND BIN_TO_UUID(tenant_id) = '%v' ORDER BY a.id DESC limit 1 `, usep.TenantID)
+	err = DBConn.Get(&OwnTenatInfo, baseDediSql)
+	logger.Printf("from db get:%v user:%#v err:%v \n", login_name, baseDediSql, err)
+
+	if err != nil {
+		return &usep, tenantInfo, nil, err
+	}
+	return &usep, tenantInfo, &OwnTenatInfo, nil
 }

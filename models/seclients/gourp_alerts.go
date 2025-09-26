@@ -8,6 +8,7 @@ import (
 // 需要排除的查询字段条件
 type FieldTags struct {
 	SortTagFilter string `json:"tag_sort" db:"tag_sort"`
+	SortIncloud   *bool  `json:"incloud" db:"incloud"`
 }
 
 type GroupTypeMapping struct {

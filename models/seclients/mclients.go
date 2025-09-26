@@ -324,8 +324,9 @@ type FmAccountsList struct {
 
 // 客户端  账号数据
 type FmAccountsInfo struct {
-	Account    *genclients.FmUserAccount `json:"account" db:"account"`
-	TenantInfo *TenantFull               `json:"tenant_info" db:"tenant_info"`
+	Account      *genclients.FmUserAccount       `json:"account" db:"account"`
+	TenantInfo   *TenantFull                     `json:"tenant_info" db:"tenant_info"`
+	DediCateInfo *genclients.FmDedicatedServices `json:"dedicate_info" db:"dedicate_info"`
 }
 
 // 面部表可修改参数 接收

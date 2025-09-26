@@ -98,6 +98,7 @@ func (that *GovAddrApi) GetDedicatedService(c *gin.Context) {
 		helpers.JSONs(c, code.NullData, err)
 		return
 	}
+
 	helpers.JSONs(c, code.Success, datas)
 }
 

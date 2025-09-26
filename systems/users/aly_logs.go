@@ -12,7 +12,7 @@ import (
 )
 
 // 执行 日志查询
-func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds []predicate.SqlLog) (*seclients.SQLLogPages, error) {
+func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds []predicate.SqlLog, pkid string) (*seclients.SQLLogPages, error) {
 
 	var (
 		client    = databases.EntClient
@@ -46,11 +46,11 @@ func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds 
 	for _, log := range logs {
 		creaTime := log.CreatedTime.Format("2006-01-02 15:04:05")
 
-		var userPostion string
+		var userPkInfo genclients.FmUserAccount
 		if log.PkValue != 0 {
-			baseSql := fmt.Sprintf("SELECT position FROM fm_user WHERE id = '%v' order by id desc limit 1 ", log.PkValue)
-			err := tx.Get(&userPostion, baseSql)
-			logger.Println("查询用户类型信息postion:", baseSql, "  ", err)
+			baseSql := fmt.Sprintf("SELECT id,position,username,login_name FROM fm_user WHERE id = '%v' order by id desc limit 1 ", log.PkValue)
+			err := tx.Get(&userPkInfo, baseSql)
+			logger.Println("查询用户信息:", baseSql, "  ", err)
 		}
 
 		var userCreator string
@@ -67,10 +67,32 @@ func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds 
 			PK:        &log.PkValue,
 			Args:      log.Args,
 			CreatedAt: &creaTime,
-			Position:  &userPostion,
+			Position:  &userPkInfo.Position,
+			UserName:  &userPkInfo.Username,
 			Creator:   &userCreator,
 		}
 
+		var respDevice seclients.DeviceLogResponse
+		if pkid == "device" {
+			var devPkInfo genclients.Devices
+			if log.PkValue != 0 {
+				baseSql := fmt.Sprintf("SELECT id,name,location FROM Device WHERE id = '%v' order by id desc limit 1 ", log.PkValue)
+				err := tx.Get(&devPkInfo, baseSql)
+				logger.Println("查询用户信息:", baseSql, "  ", err)
+			}
+
+			respDevice = seclients.DeviceLogResponse{
+				ID:         log.ID,
+				Action:     *log.Action,
+				Table:      log.TableName,
+				PK:         &log.PkValue,
+				Args:       log.Args,
+				CreatedAt:  &creaTime,
+				DeviceAttr: nil,
+				Name:       devPkInfo.Name,
+				Creator:    &userCreator,
+			}
+		}
 		// // old_data
 		// var old map[string]interface{}
 		// if log.OldData != nil {
@@ -125,7 +147,6 @@ func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds 
 						}
 					}
 				}
-
 			}
 		}
 
@@ -153,22 +174,42 @@ func (u *UserRepository) SqlLogList(Page, PageSize int, Ctx *gin.Context, conds 
 				}
 			}
 			resp.ChangesCname = &ac
+			if pkid == "device" {
+				respDevice.ChangesCname = &ac
+			}
 		}
 		if *log.Action == "UPDATE" {
 			ac := "修改" + newCNAME
 			resp.ChangesCname = &ac
+			if pkid == "device" {
+				respDevice.ChangesCname = &ac
+			}
 		}
-
-		responses.Data = append(responses.Data, resp)
+		if pkid == "device" {
+			responses.Data = append(responses.Data, respDevice)
+		} else {
+			responses.Data = append(responses.Data, resp)
+		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		logger.Println("查询组织日志失败:", responses, "  ", err)
 	}
+
 	responses.Total = total
 	if len(responses.Data) > 0 {
-		cc, err := databases.FmGlobalMap("sql_logs", nil)
+		var tags = &seclients.FieldTags{}
+		if pkid != "" {
+			if pkid != "device" {
+				tags = &seclients.FieldTags{SortTagFilter: "nouser,device"}
+			} else {
+				incloud := false
+				tags = &seclients.FieldTags{SortTagFilter: "user", SortIncloud: &incloud}
+			}
+		}
+
+		cc, err := databases.FmGlobalMap("sql_logs", tags)
 		if err != nil {
 			logger.Println("查询日志表字段说明失败:", cc, "  ", err)
 		}

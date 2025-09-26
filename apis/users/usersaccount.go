@@ -158,7 +158,7 @@ func (that *UsersApi) GetAccountInfo(ctx *gin.Context) {
 
 	LoginName := users.LoginName
 	logger.Infof("user sign info:%#v, default en:%v\n", LoginName)
-	accountInfo, tenantInfo, err := UserService.GetUserAccountInfo(LoginName)
+	accountInfo, tenantInfo, dedicateInfo, err := UserService.GetUserAccountInfo(LoginName)
 	if err != nil {
 		helpers.JSONs(ctx, code.AdminDetailError, code.ZhCNText[code.AdminDetailError]+err.Error())
 		return
@@ -176,7 +176,9 @@ func (that *UsersApi) GetAccountInfo(ctx *gin.Context) {
 		helpers.JSONs(ctx, code.Success, gin.H{"data": seclients.FmAccountsInfo{Account: accountInfo, TenantInfo: nil}})
 		return
 	}
-	helpers.JSONs(ctx, code.Success, gin.H{"data": seclients.FmAccountsInfo{Account: accountInfo, TenantInfo: tenantInfo}})
+	helpers.JSONs(ctx, code.Success, gin.H{"data": seclients.FmAccountsInfo{
+		Account: accountInfo, DediCateInfo: dedicateInfo,
+		TenantInfo: tenantInfo}})
 }
 
 // 用户json登录 支持body 加密
